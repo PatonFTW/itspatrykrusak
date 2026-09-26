@@ -1,13 +1,12 @@
 'use client';
 
 import React from 'react';
-import { MuscleMap } from './MuscleMap'; // We'll just use a simplified version inside if needed, or standalone paths
 
 interface ExerciseFigureProps {
   exerciseName: string;
   primaryMuscle: string;
   secondaryMuscles: string[];
-  step: 1 | 2 | 3; // which step to show
+  step: 1 | 2 | 3;
   className?: string;
 }
 
@@ -18,60 +17,243 @@ export function ExerciseFigure({
   step,
   className = '',
 }: ExerciseFigureProps) {
-  // We represent the 3 steps by applying slight transformations to the limbs
-  const stepTransform = {
-    1: 'translateY(0px)',
-    2: 'translateY(15px) scale(0.95)',
-    3: 'translateY(-5px) scale(1.02)'
-  };
+  // Determine movement type from name or muscle
+  const nameLower = exerciseName.toLowerCase();
+  const muscleLower = primaryMuscle.toLowerCase();
 
-  const getMuscleColor = (muscleId: string) => {
-    if (primaryMuscle === muscleId) return '#ef4444'; // Bright red
-    if (secondaryMuscles.includes(muscleId)) return '#f97316'; // Orange
-    return '#1e293b'; // Neutral dark slate
-  };
+  let movementType: 'press' | 'pull' | 'squat' | 'curl' | 'hinge' | 'generic' = 'generic';
 
-  const getGlow = (muscleId: string) => {
-    if (primaryMuscle === muscleId) return 'drop-shadow(0 0 10px rgba(239, 68, 68, 0.8))';
-    if (secondaryMuscles.includes(muscleId)) return 'drop-shadow(0 0 8px rgba(249, 115, 22, 0.6))';
-    return 'none';
-  };
+  if (
+    nameLower.includes('press') ||
+    nameLower.includes('push') ||
+    nameLower.includes('dip') ||
+    muscleLower.includes('chest') ||
+    muscleLower.includes('delt')
+  ) {
+    movementType = 'press';
+  } else if (
+    nameLower.includes('pull') ||
+    nameLower.includes('row') ||
+    nameLower.includes('lat') ||
+    muscleLower.includes('lat') ||
+    muscleLower.includes('rhomboid')
+  ) {
+    movementType = 'pull';
+  } else if (
+    nameLower.includes('squat') ||
+    nameLower.includes('extension') ||
+    nameLower.includes('lunge') ||
+    muscleLower.includes('quad')
+  ) {
+    movementType = 'squat';
+  } else if (
+    nameLower.includes('curl') ||
+    muscleLower.includes('bicep') ||
+    muscleLower.includes('hamstring')
+  ) {
+    movementType = 'curl';
+  } else if (
+    nameLower.includes('deadlift') ||
+    nameLower.includes('rdl') ||
+    nameLower.includes('hinge') ||
+    muscleLower.includes('lower back') ||
+    muscleLower.includes('glute')
+  ) {
+    movementType = 'hinge';
+  }
 
-  const musclePaths = [
-    { id: 'chest', d: 'M 70 90 C 85 90, 100 110, 100 120 C 85 120, 70 110, 70 90 Z M 130 90 C 115 90, 100 110, 100 120 C 115 120, 130 110, 130 90 Z' },
-    { id: 'front_delt', d: 'M 60 80 C 70 75, 75 85, 65 95 C 55 90, 55 85, 60 80 Z M 140 80 C 130 75, 125 85, 135 95 C 145 90, 145 85, 140 80 Z' },
-    { id: 'biceps', d: 'M 55 100 C 65 105, 60 130, 50 125 C 45 115, 45 105, 55 100 Z M 145 100 C 135 105, 140 130, 150 125 C 155 115, 155 105, 145 100 Z' },
-    { id: 'abs', d: 'M 85 130 C 100 130, 115 130, 115 170 C 100 175, 85 170, 85 130 Z' },
-    { id: 'quads', d: 'M 75 190 C 90 190, 95 240, 80 260 C 70 240, 65 210, 75 190 Z M 125 190 C 110 190, 105 240, 120 260 C 130 240, 135 210, 125 190 Z' },
-    { id: 'lats', d: 'M 70 100 C 85 105, 95 130, 85 150 C 70 130, 65 110, 70 100 Z M 130 100 C 115 105, 105 130, 115 150 C 130 130, 135 110, 130 100 Z' },
-    { id: 'hamstrings', d: 'M 75 205 C 90 205, 90 250, 80 260 C 70 240, 70 220, 75 205 Z M 125 205 C 110 205, 110 250, 120 260 C 130 240, 130 220, 125 205 Z' },
-  ];
+  // Define step-by-step limb angles and equipment positioning based on movement type
+  const renderMovementFigure = () => {
+    switch (movementType) {
+      case 'press': {
+        // Step 1: Unrack/Setup. Step 2: Bottom Stretch. Step 3: Squeeze Lockout.
+        const barY = step === 1 ? 90 : step === 2 ? 140 : 70;
+        const elbowX = step === 2 ? 45 : 65;
+
+        return (
+          <g>
+            {/* Bench / Platform Line */}
+            <line x1="30" y1="160" x2="170" y2="160" stroke="#334155" strokeWidth="4" />
+            {/* Head */}
+            <circle cx="60" cy="148" r="10" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
+            {/* Torso lying down */}
+            <line x1="70" y1="150" x2="130" y2="150" stroke="#06b6d4" strokeWidth="16" strokeLinecap="round" />
+            {/* Primary Muscle Glow (Pecs) */}
+            <circle
+              cx="95"
+              cy="148"
+              r="12"
+              fill="#ef4444"
+              opacity={step === 3 ? 0.9 : 0.6}
+              style={{ filter: 'drop-shadow(0 0 10px #ef4444)' }}
+            />
+            {/* Arms & Barbell */}
+            <path
+              d={`M 95 150 L ${elbowX} 130 L 95 ${barY}`}
+              stroke="#38bdf8"
+              strokeWidth="4"
+              fill="none"
+              strokeLinejoin="round"
+            />
+            {/* Barbell & Weights */}
+            <line x1="95" y1={barY - 15} x2="95" y2={barY + 15} stroke="#f59e0b" strokeWidth="6" />
+            <rect x="91" y={barY - 20} width="8" height="40" fill="#f59e0b" rx="2" />
+          </g>
+        );
+      }
+
+      case 'pull': {
+        // Step 1: Arms high overhead. Step 2: Pulling down. Step 3: Contracted at chest.
+        const handY = step === 1 ? 40 : step === 2 ? 80 : 115;
+        const elbowY = step === 1 ? 65 : step === 2 ? 105 : 125;
+        const elbowX = step === 1 ? 40 : 35;
+
+        return (
+          <g>
+            {/* Seat Pad */}
+            <rect x="70" y="170" width="60" height="10" fill="#334155" rx="3" />
+            {/* Head */}
+            <circle cx="100" cy="90" r="12" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
+            {/* Torso Seated */}
+            <line x1="100" y1="102" x2="100" y2="168" stroke="#0f172a" strokeWidth="20" strokeLinecap="round" />
+            {/* Lats glowing red/orange */}
+            <path
+              d="M 88 110 Q 100 120 88 150 M 112 110 Q 100 120 112 150"
+              stroke="#ef4444"
+              strokeWidth="6"
+              fill="none"
+              opacity={step === 3 ? 1 : 0.6}
+              style={{ filter: 'drop-shadow(0 0 10px #ef4444)' }}
+            />
+            {/* Arms Pulling Bar */}
+            <path
+              d={`M 90 110 L ${100 - elbowX} ${elbowY} L 60 ${handY} M 110 110 L ${100 + elbowX} ${elbowY} L 140 ${handY}`}
+              stroke="#38bdf8"
+              strokeWidth="4"
+              fill="none"
+              strokeLinecap="round"
+            />
+            {/* Lat Barbell / Cable Handle */}
+            <line x1="40" y1={handY} x2="160" y2={handY} stroke="#06b6d4" strokeWidth="4" />
+          </g>
+        );
+      }
+
+      case 'squat': {
+        // Step 1: Standing tall. Step 2: Deep squat. Step 3: Drive up.
+        const hipY = step === 1 ? 130 : step === 2 ? 175 : 140;
+        const kneeX = step === 2 ? 65 : 85;
+        const kneeY = step === 2 ? 180 : 185;
+
+        return (
+          <g>
+            {/* Ground Line */}
+            <line x1="40" y1="230" x2="160" y2="230" stroke="#334155" strokeWidth="3" />
+            {/* Barbell across traps */}
+            <line x1="50" y1={hipY - 55} x2="150" y2={hipY - 55} stroke="#f59e0b" strokeWidth="5" />
+            <rect x="45" y={hipY - 65} width="10" height="20" fill="#f59e0b" rx="2" />
+            <rect x="145" y={hipY - 65} width="10" height="20" fill="#f59e0b" rx="2" />
+
+            {/* Head & Torso */}
+            <circle cx="100" cy={hipY - 70} r="11" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
+            <line x1="100" y1={hipY - 58} x2="100" y2={hipY} stroke="#0f172a" strokeWidth="18" strokeLinecap="round" />
+
+            {/* Quads Muscle Highlight */}
+            <line
+              x1="90"
+              y1={hipY + 10}
+              x2={kneeX + 5}
+              y2={kneeY - 5}
+              stroke="#ef4444"
+              strokeWidth="10"
+              strokeLinecap="round"
+              opacity={step === 2 || step === 3 ? 1 : 0.6}
+              style={{ filter: 'drop-shadow(0 0 10px #ef4444)' }}
+            />
+
+            {/* Legs bending */}
+            <path
+              d={`M 90 ${hipY} L ${kneeX} ${kneeY} L 75 230 M 110 ${hipY} L ${200 - kneeX} ${kneeY} L 125 230`}
+              stroke="#38bdf8"
+              strokeWidth="4"
+              fill="none"
+              strokeLinejoin="round"
+            />
+          </g>
+        );
+      }
+
+      case 'curl': {
+        // Step 1: Arms hanging at bottom. Step 2: Mid-way contraction. Step 3: Squeeze at top.
+        const handY = step === 1 ? 165 : step === 2 ? 120 : 85;
+        const handX = step === 1 ? 115 : step === 2 ? 135 : 115;
+
+        return (
+          <g>
+            {/* Head & Torso Standing */}
+            <circle cx="100" cy="50" r="12" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
+            <line x1="100" y1="62" x2="100" y2="150" stroke="#0f172a" strokeWidth="20" strokeLinecap="round" />
+
+            {/* Bicep Muscle Highlight */}
+            <circle
+              cx="110"
+              cy="105"
+              r={step === 3 ? 12 : 9}
+              fill="#ef4444"
+              opacity={step === 3 ? 1 : 0.6}
+              style={{ filter: 'drop-shadow(0 0 10px #ef4444)' }}
+            />
+
+            {/* Arm Curling Path */}
+            <path
+              d={`M 100 80 L 110 115 L ${handX} ${handY}`}
+              stroke="#38bdf8"
+              strokeWidth="5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Dumbbell in Hand */}
+            <circle cx={handX} cy={handY} r="8" fill="#f59e0b" />
+          </g>
+        );
+      }
+
+      default: {
+        // Generic Athletic Pose with highlighted target muscle
+        const pulseOpacity = step === 3 ? 1 : 0.6;
+        return (
+          <g>
+            <circle cx="100" cy="50" r="14" fill="#0f172a" stroke="#38bdf8" strokeWidth="2" />
+            <path
+              d="M 100 64 L 100 160 M 100 160 L 75 240 M 100 160 L 125 240 M 100 85 L 60 130 M 100 85 L 140 130"
+              stroke="#38bdf8"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <circle
+              cx="100"
+              cy="100"
+              r="22"
+              fill="#ef4444"
+              opacity={pulseOpacity}
+              style={{ filter: 'drop-shadow(0 0 12px #ef4444)' }}
+            />
+          </g>
+        );
+      }
+    }
+  };
 
   return (
-    <div className={`relative flex flex-col items-center ${className}`}>
-      <svg 
-        viewBox="30 20 140 300" 
-        className="w-full max-w-[200px] h-auto transition-transform duration-500 ease-in-out"
-        style={{ transform: stepTransform[step] }}
-      >
-        <path
-          d="M 100 40 C 110 40, 115 50, 110 60 C 120 65, 140 70, 145 80 C 150 90, 160 120, 150 135 C 145 140, 135 145, 130 140 C 130 160, 120 180, 130 200 C 140 230, 135 260, 125 320 C 115 320, 110 310, 110 260 C 105 260, 95 260, 90 260 C 90 310, 85 320, 75 320 C 65 260, 60 230, 70 200 C 80 180, 70 160, 70 140 C 65 145, 55 140, 50 135 C 40 120, 50 90, 55 80 C 60 70, 80 65, 90 60 C 85 50, 90 40, 100 40 Z"
-          fill="#0f1219"
-          stroke="#334155"
-          strokeWidth="2"
-        />
-        {musclePaths.map((muscle) => (
-          <path
-            key={muscle.id}
-            d={muscle.d}
-            fill={getMuscleColor(muscle.id)}
-            stroke="#1e293b"
-            strokeWidth="1"
-            style={{ filter: getGlow(muscle.id), transition: 'fill 0.3s, filter 0.3s' }}
-          />
-        ))}
+    <div className={`relative flex flex-col items-center justify-center p-3 bg-slate-950/80 border border-slate-800 rounded-2xl ${className}`}>
+      <svg viewBox="0 0 200 250" className="w-full max-w-[180px] h-auto drop-shadow-md">
+        {renderMovementFigure()}
       </svg>
-      <div className="absolute top-2 right-2 bg-slate-800 text-cyan-400 text-xs px-2 py-1 rounded-full font-bold">
+      <div className="mt-2 text-[11px] font-bold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full">
         Step {step}
       </div>
     </div>

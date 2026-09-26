@@ -8,39 +8,111 @@ interface MuscleMapProps {
   className?: string;
 }
 
-const MUSCLES = {
-  front: [
-    { id: 'chest', label: 'Chest', d: 'M 70 90 C 85 90, 100 110, 100 120 C 85 120, 70 110, 70 90 Z M 130 90 C 115 90, 100 110, 100 120 C 115 120, 130 110, 130 90 Z' },
-    { id: 'front_delt', label: 'Front Deltoids', d: 'M 60 80 C 70 75, 75 85, 65 95 C 55 90, 55 85, 60 80 Z M 140 80 C 130 75, 125 85, 135 95 C 145 90, 145 85, 140 80 Z' },
-    { id: 'biceps', label: 'Biceps', d: 'M 55 100 C 65 105, 60 130, 50 125 C 45 115, 45 105, 55 100 Z M 145 100 C 135 105, 140 130, 150 125 C 155 115, 155 105, 145 100 Z' },
-    { id: 'abs', label: 'Abs', d: 'M 85 130 C 100 130, 115 130, 115 170 C 100 175, 85 170, 85 130 Z' },
-    { id: 'obliques', label: 'Obliques', d: 'M 75 135 C 80 135, 85 160, 75 165 C 70 155, 70 145, 75 135 Z M 125 135 C 120 135, 115 160, 125 165 C 130 155, 130 145, 125 135 Z' },
-    { id: 'quads', label: 'Quadriceps', d: 'M 75 190 C 90 190, 95 240, 80 260 C 70 240, 65 210, 75 190 Z M 125 190 C 110 190, 105 240, 120 260 C 130 240, 135 210, 125 190 Z' },
-  ],
-  back: [
-    { id: 'upper_back', label: 'Upper Back / Traps', d: 'M 80 75 C 100 85, 120 75, 120 95 C 100 110, 80 95, 80 75 Z' },
-    { id: 'lats', label: 'Lats', d: 'M 70 100 C 85 105, 95 130, 85 150 C 70 130, 65 110, 70 100 Z M 130 100 C 115 105, 105 130, 115 150 C 130 130, 135 110, 130 100 Z' },
-    { id: 'rear_delt', label: 'Rear Deltoids', d: 'M 65 80 C 75 85, 70 95, 60 90 C 55 85, 60 75, 65 80 Z M 135 80 C 125 85, 130 95, 140 90 C 145 85, 140 75, 135 80 Z' },
-    { id: 'triceps', label: 'Triceps', d: 'M 50 100 C 60 100, 65 125, 55 130 C 45 120, 45 110, 50 100 Z M 150 100 C 140 100, 135 125, 145 130 C 155 120, 155 110, 150 100 Z' },
-    { id: 'lower_back', label: 'Lower Back', d: 'M 85 150 C 100 145, 115 150, 110 170 C 100 175, 90 170, 85 150 Z' },
-    { id: 'glutes', label: 'Glutes', d: 'M 75 175 C 95 175, 95 200, 80 200 C 70 200, 70 185, 75 175 Z M 125 175 C 105 175, 105 200, 120 200 C 130 200, 130 185, 125 175 Z' },
-    { id: 'hamstrings', label: 'Hamstrings', d: 'M 75 205 C 90 205, 90 250, 80 260 C 70 240, 70 220, 75 205 Z M 125 205 C 110 205, 110 250, 120 260 C 130 240, 130 220, 125 205 Z' },
-    { id: 'calves', label: 'Calves', d: 'M 80 270 C 90 270, 85 300, 80 310 C 75 300, 70 280, 80 270 Z M 120 270 C 110 270, 115 300, 120 310 C 125 300, 130 280, 120 270 Z' },
-  ],
-};
+interface MuscleDef {
+  id: string;
+  label: string;
+  d: string;
+}
+
+const FRONT_MUSCLES: MuscleDef[] = [
+  {
+    id: 'chest',
+    label: 'Chest (Pectorals)',
+    d: 'M 75 95 C 90 92, 100 110, 100 125 C 85 125, 75 110, 75 95 Z M 125 95 C 110 92, 100 110, 100 125 C 115 125, 125 110, 125 95 Z',
+  },
+  {
+    id: 'front_delt',
+    label: 'Front Deltoids',
+    d: 'M 60 85 C 72 82, 75 95, 68 105 C 55 100, 55 90, 60 85 Z M 140 85 C 128 82, 125 95, 132 105 C 145 100, 145 90, 140 85 Z',
+  },
+  {
+    id: 'biceps',
+    label: 'Biceps',
+    d: 'M 52 110 C 64 112, 62 145, 52 140 C 45 130, 46 118, 52 110 Z M 148 110 C 136 112, 138 145, 148 140 C 155 130, 154 118, 148 110 Z',
+  },
+  {
+    id: 'abs',
+    label: 'Abs (Rectus Abdominis)',
+    d: 'M 84 132 L 116 132 L 114 185 L 86 185 Z',
+  },
+  {
+    id: 'obliques',
+    label: 'Obliques',
+    d: 'M 72 135 C 82 135, 84 175, 74 185 C 68 170, 68 150, 72 135 Z M 128 135 C 118 135, 116 175, 126 185 C 132 170, 132 150, 128 135 Z',
+  },
+  {
+    id: 'quads',
+    label: 'Quadriceps',
+    d: 'M 75 195 C 92 195, 96 250, 80 270 C 68 250, 66 220, 75 195 Z M 125 195 C 108 195, 104 250, 120 270 C 132 250, 134 220, 125 195 Z',
+  },
+];
+
+const BACK_MUSCLES: MuscleDef[] = [
+  {
+    id: 'traps',
+    label: 'Upper Traps',
+    d: 'M 80 75 Q 100 88 120 75 L 122 95 Q 100 110 78 95 Z',
+  },
+  {
+    id: 'lats',
+    label: 'Lats (Latissimus Dorsi)',
+    d: 'M 68 100 C 85 105, 96 135, 86 158 C 70 135, 64 115, 68 100 Z M 132 100 C 115 105, 104 135, 114 158 C 130 135, 136 115, 132 100 Z',
+  },
+  {
+    id: 'rear_delt',
+    label: 'Rear Deltoids',
+    d: 'M 62 85 C 72 88, 68 100, 58 95 C 55 90, 58 85, 62 85 Z M 138 85 C 128 88, 132 100, 142 95 C 145 90, 142 85, 138 85 Z',
+  },
+  {
+    id: 'triceps',
+    label: 'Triceps',
+    d: 'M 48 108 C 60 108, 64 138, 54 142 C 45 132, 44 118, 48 108 Z M 152 108 C 140 108, 136 138, 146 142 C 155 132, 156 118, 152 108 Z',
+  },
+  {
+    id: 'rhomboids',
+    label: 'Rhomboids / Mid Back',
+    d: 'M 86 98 L 114 98 L 110 142 L 90 142 Z',
+  },
+  {
+    id: 'lower_back',
+    label: 'Lower Back (Erectors)',
+    d: 'M 84 148 C 100 144, 116 148, 112 172 C 100 178, 88 172, 84 148 Z',
+  },
+  {
+    id: 'glutes',
+    label: 'Glutes',
+    d: 'M 74 180 C 96 180, 96 215, 78 215 C 68 215, 68 195, 74 180 Z M 126 180 C 104 180, 104 215, 122 215 C 132 215, 132 195, 126 180 Z',
+  },
+  {
+    id: 'hamstrings',
+    label: 'Hamstrings',
+    d: 'M 74 220 C 90 220, 90 265, 80 275 C 70 255, 70 235, 74 220 Z M 126 220 C 110 220, 110 265, 120 275 C 130 255, 130 235, 126 220 Z',
+  },
+  {
+    id: 'calves',
+    label: 'Calves',
+    d: 'M 78 282 C 90 282, 86 312, 80 322 C 74 312, 72 292, 78 282 Z M 122 282 C 110 282, 114 312, 120 322 C 126 312, 128 292, 122 282 Z',
+  },
+];
 
 const BodyOutline = () => (
   <path
-    d="M 100 40 C 110 40, 115 50, 110 60 C 120 65, 140 70, 145 80 C 150 90, 160 120, 150 135 C 145 140, 135 145, 130 140 C 130 160, 120 180, 130 200 C 140 230, 135 260, 125 320 C 115 320, 110 310, 110 260 C 105 260, 95 260, 90 260 C 90 310, 85 320, 75 320 C 65 260, 60 230, 70 200 C 80 180, 70 160, 70 140 C 65 145, 55 140, 50 135 C 40 120, 50 90, 55 80 C 60 70, 80 65, 90 60 C 85 50, 90 40, 100 40 Z"
-    fill="none"
+    d="M 100 35 C 112 35, 116 48, 112 60 C 122 65, 145 72, 150 85 C 158 100, 162 135, 152 150 C 146 155, 136 160, 132 155 C 130 175, 124 190, 132 215 C 140 240, 135 270, 126 330 C 116 330, 112 320, 110 270 C 105 270, 95 270, 90 270 C 88 320, 84 330, 74 330 C 65 270, 60 240, 68 215 C 76 190, 70 175, 68 155 C 64 160, 54 155, 48 150 C 38 135, 42 100, 50 85 C 55 72, 78 65, 88 60 C 84 48, 88 35, 100 35 Z"
+    fill="#0f172a"
     stroke="#334155"
     strokeWidth="2"
   />
 );
 
 export function MuscleMap({ onMuscleClick, activeMuscle, className = '' }: MuscleMapProps) {
-  const renderMuscle = (muscle: typeof MUSCLES.front[0]) => {
-    const isActive = activeMuscle === muscle.id;
+  const renderMuscle = (muscle: MuscleDef) => {
+    // Check match by ID or substring
+    const isActive =
+      activeMuscle &&
+      (activeMuscle.toLowerCase() === muscle.id ||
+        muscle.label.toLowerCase().includes(activeMuscle.toLowerCase()) ||
+        activeMuscle.toLowerCase().includes(muscle.id.replace('_', ' ')));
+
     return (
       <g
         key={muscle.id}
@@ -50,11 +122,11 @@ export function MuscleMap({ onMuscleClick, activeMuscle, className = '' }: Muscl
         <path
           d={muscle.d}
           fill={isActive ? '#06b6d4' : '#1e293b'}
-          stroke={isActive ? '#22d3ee' : '#334155'}
-          strokeWidth="1"
-          className="group-hover:fill-cyan-600/80 group-hover:stroke-cyan-400 transition-colors"
+          stroke={isActive ? '#22d3ee' : '#475569'}
+          strokeWidth="1.5"
+          className="group-hover:fill-cyan-500/80 group-hover:stroke-cyan-300 transition-colors"
           style={{
-            filter: isActive ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : 'none',
+            filter: isActive ? 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.8))' : 'none',
           }}
         />
         <title>{muscle.label}</title>
@@ -64,19 +136,23 @@ export function MuscleMap({ onMuscleClick, activeMuscle, className = '' }: Muscl
 
   return (
     <div className={`flex flex-col md:flex-row gap-8 items-center justify-center ${className}`}>
-      <div className="relative group">
-        <h3 className="text-center text-slate-400 font-medium mb-2">Front</h3>
-        <svg viewBox="20 20 160 320" className="w-48 h-96">
+      <div className="relative group text-center">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+          Anterior (Front)
+        </h4>
+        <svg viewBox="20 20 160 320" className="w-44 h-88 drop-shadow-lg">
           <BodyOutline />
-          {MUSCLES.front.map(renderMuscle)}
+          {FRONT_MUSCLES.map(renderMuscle)}
         </svg>
       </div>
-      
-      <div className="relative group">
-        <h3 className="text-center text-slate-400 font-medium mb-2">Back</h3>
-        <svg viewBox="20 20 160 320" className="w-48 h-96">
+
+      <div className="relative group text-center">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+          Posterior (Back)
+        </h4>
+        <svg viewBox="20 20 160 320" className="w-44 h-88 drop-shadow-lg">
           <BodyOutline />
-          {MUSCLES.back.map(renderMuscle)}
+          {BACK_MUSCLES.map(renderMuscle)}
         </svg>
       </div>
     </div>
