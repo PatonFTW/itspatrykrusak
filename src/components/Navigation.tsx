@@ -13,17 +13,19 @@ import {
   Settings,
   Menu,
   X,
+  Lock,
 } from 'lucide-react';
 
 interface NavigationProps {
   setupComplete?: boolean;
 }
 
-export function Navigation({ setupComplete = true }: NavigationProps) {
+export function Navigation({ setupComplete: initialSetupComplete = true }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [setupComplete, setSetupComplete] = useState<boolean>(initialSetupComplete);
   const [authChecked, setAuthChecked] = useState(false);
   const supabase = createClient();
 
@@ -33,19 +35,37 @@ export function Navigation({ setupComplete = true }: NavigationProps) {
         data: { session },
       } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('setup_complete')
+          .eq('id', session.user.id)
+          .single();
+        setSetupComplete(!!data?.setup_complete);
+      }
+
       setAuthChecked(true);
     }
     checkAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsLoggedIn(!!session);
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('setup_complete')
+          .eq('id', session.user.id)
+          .single();
+        setSetupComplete(!!data?.setup_complete);
+      }
       setAuthChecked(true);
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [pathname]);
 
   if (!authChecked || !isLoggedIn) {
     return null;
@@ -54,11 +74,11 @@ export function Navigation({ setupComplete = true }: NavigationProps) {
   const isHome = pathname === '/';
 
   const navLinks = [
-    { href: '/', label: 'Main Menu', icon: Home },
-    { href: '/dashboard/workout', label: 'Workout Blueprint', icon: Dumbbell },
-    { href: '/dashboard/nutrition', label: 'Nutrition Guide', icon: Apple },
-    { href: '/encyclopedia', label: 'Encyclopedia', icon: BookOpen },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/', label: 'Main Menu', icon: Home, locked: false },
+    { href: '/dashboard/workout', label: 'Workout Blueprint', icon: Dumbbell, locked: !setupComplete },
+    { href: '/dashboard/nutrition', label: 'Nutrition Guide', icon: Apple, locked: !setupComplete },
+    { href: '/encyclopedia', label: 'Encyclopedia', icon: BookOpen, locked: false },
+    { href: '/settings', label: 'Settings', icon: Settings, locked: false },
   ];
 
   return (
@@ -112,7 +132,8 @@ export function Navigation({ setupComplete = true }: NavigationProps) {
                   }`}
                 >
                   <link.icon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : ''}`} />
-                  {link.label}
+                  <span>{link.label}</span>
+                  {link.locked && <Lock className="w-3 h-3 text-amber-400 shrink-0" />}
                 </Link>
               );
             })}
@@ -144,14 +165,17 @@ export function Navigation({ setupComplete = true }: NavigationProps) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                     isActive
                       ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-400'
                       : 'text-slate-300 hover:bg-slate-900'
                   }`}
                 >
-                  <link.icon className="w-4 h-4" />
-                  {link.label}
+                  <div className="flex items-center gap-3">
+                    <link.icon className="w-4 h-4" />
+                    <span>{link.label}</span>
+                  </div>
+                  {link.locked && <Lock className="w-3.5 h-3.5 text-amber-400" />}
                 </Link>
               );
             })}
@@ -181,12 +205,15 @@ export function Navigation({ setupComplete = true }: NavigationProps) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+                className={`flex flex-col items-center justify-center w-full h-full transition-colors relative ${
                   isActive ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <link.icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium mt-0.5">{link.label}</span>
+                {link.locked && (
+                  <span className="absolute top-2 right-4 w-2 h-2 rounded-full bg-amber-400" />
+                )}
               </Link>
             );
           })}

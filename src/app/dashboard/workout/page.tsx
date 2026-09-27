@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Dumbbell, Activity, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Dumbbell, Activity, ChevronDown, CheckCircle2, Lock, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WorkoutDashboard() {
@@ -27,7 +27,34 @@ export default function WorkoutDashboard() {
     return <div className="p-8 text-center text-cyan-400">Loading Blueprint...</div>;
   }
 
-  // Mocked generated plan based on setup_data
+  // Locked State if setup incomplete or reset
+  if (!profile?.setup_complete || !profile?.setup_data) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="bg-[#0f1219] border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-black text-white">
+              Workout Blueprint Locked
+            </h1>
+            <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto">
+              You need to complete the 3-step setup wizard first so we can generate your personalized workout split, exercises, and sets/reps.
+            </p>
+          </div>
+          <Link
+            href="/setup"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-cyan-500 text-slate-950 font-black text-sm hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20"
+          >
+            Start 3-Step Setup Wizard <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Generated plan based on setup_data
   const days = [
     { name: 'Day 1', focus: 'Upper Body Power', exercises: [
       { id: 'bench-press', name: 'Barbell Bench Press', sets: '4', reps: '5-8', target: 'Chest' },

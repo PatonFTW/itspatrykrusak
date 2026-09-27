@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Utensils, Flame, Droplets, Target, AlertTriangle } from 'lucide-react';
+import { Utensils, Flame, Droplets, Target, AlertTriangle, Lock, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NutritionDashboard() {
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [currentWeight, setCurrentWeight] = useState(80);
   const supabase = createClient();
 
@@ -15,8 +17,9 @@ export default function NutritionDashboard() {
       if (session) {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         setProfile(data);
-        if (data.currentWeightKg) setCurrentWeight(data.currentWeightKg);
+        if (data?.currentWeightKg) setCurrentWeight(data.currentWeightKg);
       }
+      setLoading(false);
     }
     loadData();
   }, []);
@@ -28,11 +31,42 @@ export default function NutritionDashboard() {
     }
   };
 
-  // Mock calculations
-  const calories = 2400;
-  const protein = 160;
-  const carbs = 250;
-  const fats = 70;
+  if (loading) {
+    return <div className="p-8 text-center text-emerald-400">Loading Nutrition Guide...</div>;
+  }
+
+  // Locked State if setup incomplete or reset
+  if (!profile?.setup_complete || !profile?.setup_data) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="bg-[#0f1219] border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-black text-white">
+              Nutrition Guide Locked
+            </h1>
+            <p className="text-slate-400 text-sm leading-relaxed max-w-md mx-auto">
+              You need to complete the 3-step setup wizard first so we can calculate your exact daily calories, protein, carbs, and fats.
+            </p>
+          </div>
+          <Link
+            href="/setup"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-emerald-500 text-slate-950 font-black text-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
+          >
+            Start 3-Step Setup Wizard <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculations based on profile setup
+  const calories = profile?.setup_data?.calories || 2400;
+  const protein = profile?.setup_data?.proteinGrams || 160;
+  const carbs = profile?.setup_data?.carbsGrams || 250;
+  const fats = profile?.setup_data?.fatGrams || 70;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 text-white">
@@ -55,7 +89,7 @@ export default function NutritionDashboard() {
             max={Math.max(profile?.setup_data?.goalWeightKg || 70, profile?.setup_data?.weightKg || 80)} 
             value={currentWeight}
             onChange={(e) => handleWeightChange(Number(e.target.value))}
-            className="w-full accent-emerald-500"
+            className="w-full accent-emerald-500 cursor-pointer"
           />
           <p className="text-center text-sm text-gray-500 italic">Drag to update your current weight. Macros auto-adjust.</p>
         </div>
