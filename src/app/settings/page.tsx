@@ -15,10 +15,14 @@ export default function SettingsPage() {
   useEffect(() => {
     async function loadUser() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) setUser(session.user);
+      if (!session) {
+        router.replace('/');
+        return;
+      }
+      setUser(session.user);
     }
     loadUser();
-  }, []);
+  }, [router, supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

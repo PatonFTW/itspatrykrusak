@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Dumbbell, Activity, ChevronDown, CheckCircle2, Lock, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WorkoutDashboard() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [expandedDay, setExpandedDay] = useState<number | null>(0);
@@ -14,14 +16,16 @@ export default function WorkoutDashboard() {
   useEffect(() => {
     async function loadData() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        setProfile(data);
+      if (!session) {
+        router.replace('/');
+        return;
       }
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      setProfile(data);
       setLoading(false);
     }
     loadData();
-  }, []);
+  }, [router, supabase]);
 
   if (loading) {
     return <div className="p-8 text-center text-cyan-400">Loading Blueprint...</div>;

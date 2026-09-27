@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
 import { exerciseDatabase, type Exercise } from '@/lib/workout-data';
 import { ExerciseFigure } from '@/components/svg/ExerciseFigure';
 import {
@@ -23,10 +24,32 @@ import {
 export default function ExerciseDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const supabase = createClient();
+  const [authLoading, setAuthLoading] = useState(true);
   const exerciseId = params.exerciseId as string;
 
   // Step state: 1 (Setup), 2 (Bottom Stretch), 3 (Top Squeeze)
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/');
+      } else {
+        setAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, [router, supabase]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center text-cyan-400 font-bold">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    );
+  }
 
   const exercise = exerciseDatabase.find((e: Exercise) => e.id === exerciseId);
 

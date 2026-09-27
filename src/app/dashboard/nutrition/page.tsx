@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Utensils, Flame, Droplets, Target, AlertTriangle, Lock, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NutritionDashboard() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentWeight, setCurrentWeight] = useState(80);
@@ -14,15 +16,17 @@ export default function NutritionDashboard() {
   useEffect(() => {
     async function loadData() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        setProfile(data);
-        if (data?.currentWeightKg) setCurrentWeight(data.currentWeightKg);
+      if (!session) {
+        router.replace('/');
+        return;
       }
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      setProfile(data);
+      if (data?.currentWeightKg) setCurrentWeight(data.currentWeightKg);
       setLoading(false);
     }
     loadData();
-  }, []);
+  }, [router, supabase]);
 
   const handleWeightChange = async (val: number) => {
     setCurrentWeight(val);

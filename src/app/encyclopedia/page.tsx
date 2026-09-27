@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 import { exerciseDatabase, type Exercise } from '@/lib/workout-data';
 import { MuscleMap } from '@/components/svg/MuscleMap';
 import {
@@ -67,14 +69,41 @@ const MUSCLE_GROUPS: MuscleGroupStructure[] = [
     name: 'Core',
     subgroups: ['All Core', 'Upper Abs', 'Lower Abs', 'Obliques'],
   },
+  {
+    name: 'Forearms',
+    subgroups: ['All Forearms', 'Forearms'],
+  },
 ];
 
 export default function EncyclopediaPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [authLoading, setAuthLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMainGroup, setSelectedMainGroup] = useState<string>('All');
   const [selectedSubgroup, setSelectedSubgroup] = useState<string>('All');
   const [selectedEquipment, setSelectedEquipment] = useState<string>('All');
   const [activeMuscleMapTarget, setActiveMuscleMapTarget] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/');
+      } else {
+        setAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, [router, supabase]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center text-cyan-400 font-bold">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    );
+  }
 
   const equipmentList = [
     { label: 'All Equipment', value: 'All' },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { ChevronRight, ChevronLeft, Check, Activity, Dumbbell, Target } from 'lucide-react';
@@ -12,8 +12,29 @@ type UnitSystem = 'metric' | 'imperial';
 export default function SetupWizard() {
   const router = useRouter();
   const supabase = createClient();
+  const [authLoading, setAuthLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/');
+      } else {
+        setAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, [router, supabase]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#07090e] flex items-center justify-center text-cyan-400 font-bold">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    );
+  }
   
   const [setupData, setSetupData] = useState({
     sex: 'male' as 'male' | 'female',
