@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 import {
   ArrowLeft,
   Home,
@@ -10,10 +11,8 @@ import {
   Apple,
   BookOpen,
   Settings,
-  Sparkles,
   Menu,
   X,
-  Play,
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -23,7 +22,34 @@ interface NavigationProps {
 export function Navigation({ setupComplete = true }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function checkAuth() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      setAuthChecked(true);
+    }
+    checkAuth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+      setAuthChecked(true);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (!authChecked || !isLoggedIn) {
+    return null;
+  }
 
   const isHome = pathname === '/';
 
